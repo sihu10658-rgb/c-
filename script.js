@@ -3,15 +3,12 @@ const display = document.getElementById('display');
 // --- C++ (WebAssembly) 연동 설정 ---
 let cppAddFunction = null;
 
-// Emscripten Wasm 모듈이 초기화되면 실행됨
 Module.onRuntimeInitialized = () => {
     try {
-        // C++로 작성된 함수('cppAdd')를 자바스크립트 함수로 래핑
-        // 첫 번째 인자: C++ 함수 이름, 두 번째 인자: 반환 타입('number'), 세 번째 인자: 매개변수 타입 배열
         cppAddFunction = Module.cwrap('cppAdd', 'number', ['number', 'number']);
-        console.log("C++ Wasm 모듈 로드 완료! 이제 C++ 함수를 내장 함수처럼 호출할 수 있습니다.");
+        console.log("C++ Wasm 모듈 로드 완료!");
     } catch (e) {
-        console.warn("C++ 모듈을 불러오는 중이거나 아직 컴파일 파일이 없습니다. 기본 JS 연산으로 동작합니다.");
+        console.warn("C++ 모듈이 없습니다. Math.js 및 기본 연산으로 동작합니다.");
     }
 };
 
@@ -23,29 +20,35 @@ function clearDisplay() {
     display.value = '';
 }
 
-// 계산 및 C++ 연동 처리
+// 계산 처리 (C++ Wasm 최적화 + Math.js 종합 엔진)
 function equal() {
     let expr = display.value;
     if (!expr) return;
 
     try {
-        // 예시: 덧셈(+) 연산이 포함되어 있고 C++ 함수가 준비되어 있다면 C++ 함수 호출!
-        if (expr.includes('+') && cppAddFunction) {
-            let parts = expr.split('+');
+        let processedExpr = expr.replace(/(\d)i/g, '$1*i');
+
+        // 예: 덧셈 연산이고 C++ Wasm이 준비되어 있다면 C++로 태우기!
+        if (processedExpr.includes('+') && !processedExpr.includes('zeta') && !processedExpr.includes('sin') && cppAddFunction) {
+            let parts = processedExpr.split('+');
             let a = parseFloat(parts[0]);
             let b = parseFloat(parts[1]);
             
             if (!isNaN(a) && !isNaN(b)) {
-                // 🔥 C++ 함수를 자바스크립트 내장 함수처럼 호출!
                 let result = cppAddFunction(a, b);
                 display.value = result;
                 return;
             }
         }
 
-        // 그 외의 수식은 자바스크립트 기본 eval로 처리 (복소수나 기타 수식)
-        let result = eval(expr);
-        display.value = result;
+        // 그 외 제타 함수, 삼각함수, 복소수 등은 Math.js로 처리
+        let result = math.evaluate(processedExpr);
+        
+        if (result && typeof result.toString === 'function') {
+            display.value = result.toString();
+        } else {
+            display.value = result;
+        }
     } catch (error) {
         display.value = '오류';
     }
@@ -62,14 +65,20 @@ function drawGraph() {
     for (let x = -10; x <= 10; x += 0.5) {
         labels.push(x.toFixed(1));
         try {
-            const f = new Function('x', `return ${fnStr};`);
-            data.push(f(x));
+            let y = math.evaluate(fnStr, { x: x });
+            if (isNaN(y) || !isFinite(y) || typeof y === 'object') {
+                data.push(null);
+            } else {
+                data.push(y);
+            }
         } catch (e) {
             data.push(null);
         }
     }
 
-    const ctx = document.getElementById('mathGraph').getContext('2d');
+    const canvasElem = document.getElementById('mathGraph');
+    if (!canvasElem) return;
+    const ctx = canvasElem.getContext('2d');
 
     if (myChart) {
         myChart.destroy();
@@ -86,7 +95,7 @@ function drawGraph() {
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
-                pointRadius: 2
+                pointRadius: 1
             }]
         },
         options: {
@@ -100,7 +109,6 @@ function drawGraph() {
     });
 }
 
-// 페이지 로드 시 기본 그래프 실행
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
     drawGraph();
-};
+});
