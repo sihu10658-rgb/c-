@@ -3,126 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>복소수 & 그래프 지원 웹 계산기</title>
-    <!-- 그래프를 위한 Chart.js CDN 추가 -->
+    <title>복소수 & 그래프 웹 계산기</title>
+
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            gap: 20px;
-        }
-        .calculator {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 320px;
-        }
-        .graph-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 350px;
-            height: 380px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #display {
-            width: 100%;
-            height: 50px;
-            font-size: 22px;
-            text-align: right;
-            margin-bottom: 15px;
-            padding: 5px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background-color: #fafafa;
-        }
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        button {
-            padding: 12px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            background-color: #e0e0e0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: #d0d0d0;
-        }
-        button.operator {
-            background-color: #ff9f43;
-            color: white;
-        }
-        button.operator:hover {
-            background-color: #f39c12;
-        }
-        button.complex {
-            background-color: #9b59b6;
-            color: white;
-        }
-        button.complex:hover {
-            background-color: #8e44ad;
-        }
-        button.equal {
-            background-color: #2ed573;
-            color: white;
-            grid-column: span 2;
-        }
-        button.equal:hover {
-            background-color: #26af5f;
-        }
-        button.clear {
-            background-color: #ff4757;
-            color: white;
-            grid-column: span 2;
-        }
-        button.clear:hover {
-            background-color: #e84118;
-        }
-        .graph-input {
-            margin-top: 15px;
-            width: 100%;
-            display: flex;
-            gap: 5px;
-        }
-        .graph-input input {
-            flex: 1;
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .graph-input button {
-            padding: 8px 12px;
-            font-size: 14px;
-            background-color: #3b82f6;
-            color: white;
-            border-radius: 4px;
-        }
-        .graph-input button:hover {
-            background-color: #2563eb;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- 계산기 영역 -->
     <div class="calculator">
         <input type="text" id="display" readonly placeholder="예: 3+2*i">
         <div class="buttons">
@@ -151,7 +38,6 @@
         </div>
     </div>
 
-    <!-- 그래프 영역 -->
     <div class="graph-container">
         <canvas id="mathGraph"></canvas>
         <div class="graph-input">
@@ -160,110 +46,6 @@
         </div>
     </div>
 
-    <script>
-        const display = document.getElementById('display');
-
-        function appendValue(val) {
-            display.value += val;
-        }
-
-        function clearDisplay() {
-            display.value = '';
-        }
-
-        // 복소수 계산을 포함한 연산 처리
-        function equal() {
-            let expr = display.value;
-            if (!expr) return;
-
-            try {
-                // 'i'를 자바스크립트가 인식할 수 있는 형태로 치환 
-                // 예: 2*i 또는 (3+2*i) 형태를 처리하기 쉽게 변환
-                // i 단독으로 쓰인 경우 1*i 형태로 보정
-                let jsExpr = expr.replace(/(\d+)?i/g, (match, p1) => {
-                    let num = p1 ? p1 : '1';
-                    return `mathI(${num})`;
-                });
-
-                // 가상의 복소수 연산을 위한 헬퍼 함수 정의 후 eval 실행
-                // 여기서는 간단히 문자열 수식 형태나 실수/허수부 분리 계산 수행
-                let result = evaluateComplexExpression(expr);
-                display.value = result;
-            } catch (error) {
-                display.value = '오류';
-            }
-        }
-
-        // 간단한 복소수 파서 및 계산기 (예: 3+2*i + 1+4*i 등)
-        function evaluateComplexExpression(expr) {
-            // eval을 안전하게 쓰기 위해 수식 내에 'i'가 포함된 경우 처리
-            // 예시로 허수 단위 i를 포함한 간단한 사칙연산 처리 구조
-            try {
-                // i를 임의의 객체나 문자열 처리 대신 대략적인 값으로 치환하여 계산 가능케 함
-                // 자바스크립트 수식에서 i * i = -1 이 되도록 처리하는 간이 파서
-                let cleaned = expr.replace(/i/g, '*1i');
-                // 정교한 복소수 계산을 원하시면 math.js 같은 라이브러리를 쓰지만, 
-                // 여기서는 기본 수식 계산 후 i 포맷을 유지하도록 유도합니다.
-                let evaluated = eval(expr.replace(/i/g, '*j_imaginary')); 
-                return expr; // 임시로 입력된 수식 포맷 반환 (확장 가능)
-            } catch(e) {
-                return "계산 불가";
-            }
-        }
-
-        // --- 그래프 기능 구현 ---
-        let myChart = null;
-
-        function drawGraph() {
-            const fnStr = document.getElementById('fnInput').value;
-            const labels = [];
-            const data = [];
-
-            for (let x = -10; x <= 10; x += 0.5) {
-                labels.push(x.toFixed(1));
-                try {
-                    const f = new Function('x', `return ${fnStr};`);
-                    data.push(f(x));
-                } catch (e) {
-                    data.push(null);
-                }
-            }
-
-            const ctx = document.getElementById('mathGraph').getContext('2d');
-
-            if (myChart) {
-                myChart.destroy();
-            }
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `y = ${fnStr}`,
-                        data: data,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { title: { display: true, text: 'X축' } },
-                        y: { title: { display: true, text: 'Y축' } }
-                    }
-                }
-            });
-        }
-
-        window.onload = () => {
-            drawGraph();
-        };
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
