@@ -3,18 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>복소수 & 그래프 웹 계산기</title>
-
+    <title>초공학용 상수 & 제타 함수 웹 계산기</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
 </head>
 <body>
 
     <div class="calculator">
-        <input type="text" id="display" readonly placeholder="예: 3+2*i">
+        <input type="text" id="display" readonly placeholder="예: pi, e, euler, zeta(3)">
         <div class="buttons">
             <button class="clear" onclick="clearDisplay()">C</button>
+            <button onclick="appendValue('pi')" class="constant">π</button>
+            <button onclick="appendValue('e')" class="constant">e</button>
+            <button onclick="appendValue('euler')" class="constant">γ</button>
+
+            <button onclick="appendValue('zeta(')" class="func">zeta</button>
+            <button onclick="appendValue('gamma(')" class="func">Gamma</button>
+            <button onclick="appendValue('factorial(')" class="func">n!</button>
+            <button onclick="appendValue('sqrt(')" class="func">√</button>
+
+            <button onclick="appendValue('sin(')" class="func">sin</button>
+            <button onclick="appendValue('cos(')" class="func">cos</button>
+            <button onclick="appendValue('tan(')" class="func">tan</button>
+            <button onclick="appendValue('^')" class="operator">^</button>
+
             <button onclick="appendValue('i')" class="complex">i</button>
+            <button onclick="appendValue('(')" class="func">(</button>
+            <button onclick="appendValue(')')" class="func">)</button>
             <button onclick="appendValue('/')" class="operator">/</button>
             
             <button onclick="appendValue('7')">7</button>
@@ -32,16 +50,18 @@
             <button onclick="appendValue('3')">3</button>
             <button onclick="appendValue('+')" class="operator">+</button>
             
-            <button onclick="appendValue('0')">0</button>
+            <button onclick="appendValue('0')" style="grid-column: span 2;">0</button>
             <button onclick="appendValue('.')">.</button>
             <button onclick="equal()" class="equal">=</button>
         </div>
     </div>
 
     <div class="graph-container">
-        <canvas id="mathGraph"></canvas>
+        <div style="width: 100%; height: 280px; position: relative;">
+            <canvas id="mathGraph"></canvas>
+        </div>
         <div class="graph-input">
-            <input type="text" id="fnInput" placeholder="예: x * x 또는 Math.sin(x)" value="x * x">
+            <input type="text" id="fnInput" placeholder="예: sin(x) + euler" value="sin(x)">
             <button onclick="drawGraph()">그래프 그리기</button>
         </div>
     </div>
